@@ -668,52 +668,52 @@ components:
           - combo_nutrition_snapshot
           - combo_recipe_expansion_rules
   schemas:
-    ApiResponse:
-    
-        Announcement:
-          type: object
-          properties:
-            id:
-              type: string
-              example: "1"
-            message:
-              type: string
-              example: "Buy 1 Get 1 on Boba Tea today!"
-            priority:
-              type: string
-              enum: [low, normal, high]
-              example: "high"
-            start_at:
-              type: string
-              format: date-time
-            end_at:
-              type: string
-              format: date-time
 
-    AnnouncementResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        message:
-          type: string
-          example: OK
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Announcement'
+  ApiResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        example: true
+      message:
+        type: string
+        example: OK
+      data:
+        nullable: true
 
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-        message:
-          type: string
-          example: OK
-        data:
-          nullable: true
+  Announcement:
+    type: object
+    properties:
+      id:
+        type: string
+        example: "1"
+      message:
+        type: string
+        example: "Buy 1 Get 1 on Boba Tea today!"
+      priority:
+        type: string
+        enum: [low, normal, high]
+        example: high
+      start_at:
+        type: string
+        format: date-time
+      end_at:
+        type: string
+        format: date-time
+
+  AnnouncementResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        example: true
+      message:
+        type: string
+        example: OK
+      data:
+        type: array
+        items:
+          $ref: '#/components/schemas/Announcement'
 
       
   responses:
