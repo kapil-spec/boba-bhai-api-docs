@@ -1,0 +1,635 @@
+openapi: 3.0.3
+info:
+  title: Boba Bhai Mobile API
+  version: 1.0.0
+  description: |
+    Swagger/OpenAPI definition for the Boba Bhai mobile app flows.
+    Base path used below is `/v1`.
+servers:
+  - url: https://api.bobabhai.com/v1
+    description: Production (placeholder)
+  - url: http://localhost:3000/v1
+    description: Local dev
+tags:
+  - name: Auth
+  - name: User
+  - name: Location
+  - name: Stores
+  - name: Menu
+  - name: Cart
+  - name: Addresses
+  - name: Checkout
+  - name: Orders
+  - name: Payments
+  - name: Notifications
+  - name: Profile
+  - name: Loyalty
+  - name: Offers
+  - name: Catalog
+paths:
+  /auth/send-otp:
+    post:
+      tags: [Auth]
+      summary: Send OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone]
+              properties:
+                phone:
+                  type: string
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /auth/verify-otp:
+    post:
+      tags: [Auth]
+      summary: Verify OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone, otp]
+              properties:
+                phone: { type: string }
+                otp: { type: string }
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /auth/refresh-token:
+    post:
+      tags: [Auth]
+      summary: Refresh access token
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout current session
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /user/me:
+    get:
+      tags: [User]
+      summary: Get current user
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+
+  /stores/nearby:
+    get:
+      tags: [Stores]
+      summary: Get nearby stores
+      parameters:
+        - $ref: '#/components/parameters/Lat'
+        - $ref: '#/components/parameters/Lng'
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /stores/{storeId}:
+    get:
+      tags: [Stores]
+      summary: Get store details
+      parameters:
+        - $ref: '#/components/parameters/StoreId'
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /user/location:
+    post:
+      tags: [Location]
+      summary: Save selected location
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                lat: { type: number, format: double }
+                lng: { type: number, format: double }
+                address: { type: string }
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /serviceability:
+    get:
+      tags: [Location]
+      summary: Check delivery serviceability
+      parameters:
+        - $ref: '#/components/parameters/Lat'
+        - $ref: '#/components/parameters/Lng'
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+
+  /categories:
+    get:
+      tags: [Menu]
+      summary: List categories
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /products:
+    get:
+      tags: [Menu]
+      summary: List products
+      parameters:
+        - in: query
+          name: storeId
+          schema: { type: string }
+        - in: query
+          name: categoryId
+          schema: { type: string }
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /products/{productId}:
+    get:
+      tags: [Menu]
+      summary: Product details
+      parameters:
+        - $ref: '#/components/parameters/ProductId'
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /products/{productId}/customizations:
+    get:
+      tags: [Menu]
+      summary: Product customizations
+      parameters:
+        - $ref: '#/components/parameters/ProductId'
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /search:
+    get:
+      tags: [Menu]
+      summary: Search products
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+
+  /cart:
+    get:
+      tags: [Cart]
+      summary: Get current cart
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /cart/items:
+    post:
+      tags: [Cart]
+      summary: Add item to cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [productId, quantity]
+              properties:
+                productId: { type: string }
+                quantity: { type: integer }
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /cart/items/{itemId}:
+    patch:
+      tags: [Cart]
+      summary: Update cart item
+      parameters:
+        - $ref: '#/components/parameters/ItemId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity: { type: integer }
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+    delete:
+      tags: [Cart]
+      summary: Remove cart item
+      parameters:
+        - $ref: '#/components/parameters/ItemId'
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /cart/apply-coupon:
+    post:
+      tags: [Cart]
+      summary: Apply coupon to cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code: { type: string }
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /cart/coupon:
+    delete:
+      tags: [Cart]
+      summary: Remove coupon from cart
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /cart/summary:
+    get:
+      tags: [Cart]
+      summary: Cart totals and charges
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+
+  /addresses:
+    get:
+      tags: [Addresses]
+      summary: List addresses
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+    post:
+      tags: [Addresses]
+      summary: Add address
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /addresses/{id}:
+    patch:
+      tags: [Addresses]
+      summary: Update address
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+    delete:
+      tags: [Addresses]
+      summary: Delete address
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /addresses/{id}/default:
+    patch:
+      tags: [Addresses]
+      summary: Set default address
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+
+  /checkout/preview:
+    post:
+      tags: [Checkout]
+      summary: Preview payable amount
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /orders:
+    post:
+      tags: [Orders]
+      summary: Place order
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+    get:
+      tags: [Orders]
+      summary: List orders
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /orders/{orderId}:
+    get:
+      tags: [Orders]
+      summary: Get order details
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /orders/{orderId}/tracking:
+    get:
+      tags: [Orders]
+      summary: Get order tracking timeline
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /orders/{orderId}/rate:
+    post:
+      tags: [Orders]
+      summary: Submit order rating
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /orders/{orderId}/reorder:
+    post:
+      tags: [Orders]
+      summary: Reorder previous order
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+
+  /payments/create-intent:
+    post:
+      tags: [Payments]
+      summary: Create payment intent
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /payments/confirm:
+    post:
+      tags: [Payments]
+      summary: Confirm payment
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+
+  /notifications/device-token:
+    post:
+      tags: [Notifications]
+      summary: Register device token
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+    delete:
+      tags: [Notifications]
+      summary: Unregister device token
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /notifications/preferences:
+    patch:
+      tags: [Notifications]
+      summary: Update notification preferences
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /notifications:
+    get:
+      tags: [Notifications]
+      summary: List notifications
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+
+  /profile:
+    get:
+      tags: [Profile]
+      summary: Get profile
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+    patch:
+      tags: [Profile]
+      summary: Update profile
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /payment-methods:
+    get:
+      tags: [Profile]
+      summary: List payment methods
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+    post:
+      tags: [Profile]
+      summary: Add payment method
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /payment-methods/{id}:
+    delete:
+      tags: [Profile]
+      summary: Delete payment method
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+
+  /loyalty/balance:
+    get:
+      tags: [Loyalty]
+      summary: Get coin balance
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /loyalty/history:
+    get:
+      tags: [Loyalty]
+      summary: Get coin history
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /loyalty/redeem:
+    post:
+      tags: [Loyalty]
+      summary: Redeem coins
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /loyalty/rewards:
+    get:
+      tags: [Loyalty]
+      summary: Get rewards catalog
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+
+  /offers:
+    get:
+      tags: [Offers]
+      summary: List active offers
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /coupons/eligible:
+    get:
+      tags: [Offers]
+      summary: List eligible coupons
+      parameters:
+        - in: query
+          name: cartId
+          schema: { type: string }
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /coupons/validate:
+    post:
+      tags: [Offers]
+      summary: Validate coupon code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code: { type: string }
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+
+  /api/catalog/resources:
+    get:
+      tags: [Catalog]
+      summary: List supported catalog resources
+      description: Returns all resource keys available under generic catalog CRUD APIs.
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+
+  /api/catalog/{resource}:
+    get:
+      tags: [Catalog]
+      summary: List records for a catalog resource
+      parameters:
+        - $ref: '#/components/parameters/CatalogResource'
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+    post:
+      tags: [Catalog]
+      summary: Create a record in a catalog resource
+      parameters:
+        - $ref: '#/components/parameters/CatalogResource'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+
+  /api/catalog/{resource}/{id}:
+    get:
+      tags: [Catalog]
+      summary: Get a single catalog record
+      parameters:
+        - $ref: '#/components/parameters/CatalogResource'
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+    put:
+      tags: [Catalog]
+      summary: Update a catalog record
+      parameters:
+        - $ref: '#/components/parameters/CatalogResource'
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+    delete:
+      tags: [Catalog]
+      summary: Delete a catalog record
+      parameters:
+        - $ref: '#/components/parameters/CatalogResource'
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Id:
+      in: path
+      name: id
+      required: true
+      schema: { type: string }
+    StoreId:
+      in: path
+      name: storeId
+      required: true
+      schema: { type: string }
+    ProductId:
+      in: path
+      name: productId
+      required: true
+      schema: { type: string }
+    ItemId:
+      in: path
+      name: itemId
+      required: true
+      schema: { type: string }
+    OrderId:
+      in: path
+      name: orderId
+      required: true
+      schema: { type: string }
+    Lat:
+      in: query
+      name: lat
+      required: true
+      schema: { type: number, format: double }
+    Lng:
+      in: query
+      name: lng
+      required: true
+      schema: { type: number, format: double }
+    CatalogResource:
+      in: path
+      name: resource
+      required: true
+      schema:
+        type: string
+        enum:
+          - menu_items
+          - menu_categories
+          - menu_item_category_map
+          - modifier_groups
+          - modifiers
+          - menu_item_modifier_group_map
+          - ingredients
+          - menu_item_recipe
+          - modifier_ingredient_impact
+          - menu_item_prices
+          - store_menu_item_availability
+          - store_modifier_availability
+          - catalog_publish_versions
+          - store_catalog_assignment
+          - catalog_change_log
+          - catalog_approval_workflows
+          - catalog_media_assets
+          - tax_rules
+          - item_tax_overrides
+          - channel_item_external_map
+          - channel_modifier_external_map
+          - combo_definitions
+          - combo_groups
+          - combo_group_items
+          - combo_pricing
+          - combo_availability
+          - combo_modifier_group_map
+          - combo_channel_external_map
+          - combo_publish_versions
+          - combo_store_assignment
+          - combo_change_log
+          - combo_approval_workflows
+          - combo_media_assets
+          - combo_tax_overrides
+          - combo_nutrition_snapshot
+          - combo_recipe_expansion_rules
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: OK
+        data:
+          nullable: true
+  responses:
+    Ok:
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+security:
+  - BearerAuth: []
