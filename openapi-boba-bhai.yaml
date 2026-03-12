@@ -26,7 +26,27 @@ tags:
   - name: Loyalty
   - name: Offers
   - name: Catalog
+  - name: Announcements
 paths:
+
+  /announcements:
+    get:
+      tags: [Announcements]
+      summary: Get announcement bar messages
+      description: |
+        Returns active announcements configured by marketing.
+        These messages appear in the scrolling news bar on the login screen
+        before the user verifies OTP.
+      security: []
+      responses:
+        '200':
+          description: List of active announcements
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnnouncementResponse'
+
+
   /auth/send-otp:
     post:
       tags: [Auth]
@@ -649,6 +669,41 @@ components:
           - combo_recipe_expansion_rules
   schemas:
     ApiResponse:
+    
+        Announcement:
+          type: object
+          properties:
+            id:
+              type: string
+              example: "1"
+            message:
+              type: string
+              example: "Buy 1 Get 1 on Boba Tea today!"
+            priority:
+              type: string
+              enum: [low, normal, high]
+              example: "high"
+            start_at:
+              type: string
+              format: date-time
+            end_at:
+              type: string
+              format: date-time
+
+    AnnouncementResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: OK
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Announcement'
+
       type: object
       properties:
         success:
@@ -659,6 +714,8 @@ components:
           example: OK
         data:
           nullable: true
+
+      
   responses:
     Ok:
       description: Successful response
