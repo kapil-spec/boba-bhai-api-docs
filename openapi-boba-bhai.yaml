@@ -669,51 +669,52 @@ components:
           - combo_recipe_expansion_rules
   schemas:
 
-  ApiResponse:
-    type: object
-    properties:
-      success:
-        type: boolean
-        example: true
-      message:
-        type: string
-        example: OK
-      data:
-        nullable: true
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: OK
+        data:
+          type: object
+          nullable: true
 
-  Announcement:
-    type: object
-    properties:
-      id:
-        type: string
-        example: "1"
-      message:
-        type: string
-        example: "Buy 1 Get 1 on Boba Tea today!"
-      priority:
-        type: string
-        enum: [low, normal, high]
-        example: high
-      start_at:
-        type: string
-        format: date-time
-      end_at:
-        type: string
-        format: date-time
+    Announcement:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "1"
+        message:
+          type: string
+          example: "Buy 1 Get 1 on Boba Tea today!"
+        priority:
+          type: string
+          enum: [low, normal, high]
+          example: high
+        start_at:
+          type: string
+          format: date-time
+        end_at:
+          type: string
+          format: date-time
 
-  AnnouncementResponse:
-    type: object
-    properties:
-      success:
-        type: boolean
-        example: true
-      message:
-        type: string
-        example: OK
-      data:
-        type: array
-        items:
-          $ref: '#/components/schemas/Announcement'
+    AnnouncementResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: OK
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Announcement'
 
       
   responses:
