@@ -59,6 +59,41 @@ paths:
                 otp: { type: string }
       responses:
         '200': { $ref: '#/components/responses/Ok' }
+
+  
+  /auth/resend-otp:
+    post:
+      tags: [Auth]
+      summary: Resend OTP
+      description: |
+        Resends a new OTP to the given phone number if the resend cooldown has passed.
+        Used when the user did not receive the original OTP.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone]
+              properties:
+                phone:
+                  type: string
+                  example: "+919876543210"
+      responses:
+        '200':
+          description: OTP resent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '429':
+          description: Resend requested too soon
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              
+
   /auth/refresh-token:
     post:
       tags: [Auth]
