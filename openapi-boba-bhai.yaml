@@ -32,11 +32,11 @@ paths:
   /announcements:
     get:
       tags: [Announcements]
-      summary: Get announcement bar messages
+      summary: Get announcement bar messages (public)
       description: |
         Returns active announcements configured by marketing.
         These messages appear in the scrolling news bar on the login screen
-        before the user verifies OTP.
+        before the user verifies OTP. Filtered by current time against start_at/end_at.
       security: []
       responses:
         '200':
@@ -45,6 +45,200 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AnnouncementResponse'
+    post:
+      tags: [Announcements]
+      summary: Create a new announcement (admin)
+      description: |
+        Marketing dashboard uses this to create a new announcement.
+        Requires admin/marketing role. The announcement becomes visible on the
+        consumer app once start_at is reached and the record is active.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnnouncementInput'
+      responses:
+        '200':
+          description: Announcement created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnnouncementSingleResponse'
+        '400':
+          description: Validation error (e.g. end_at before start_at)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /announcements/all:
+    get:
+      tags: [Announcements]
+      summary: List all announcements (admin)
+      description: |
+        Returns all announcements regardless of active status or schedule —
+        used by the marketing dashboard to manage the full list including
+        drafts, expired, and upcoming announcements.
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [active, scheduled, expired, all]
+            default: all
+          description: Filter by computed status
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        '200':
+          description: Full list of announcements
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnnouncementResponse'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /announcements/{id}:
+    get:
+      tags: [Announcements]
+      summary: Get a single announcement (admin)
+      description: Fetch full details of one announcement for the edit form in the dashboard.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Announcement record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnnouncementSingleResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    patch:
+      tags: [Announcements]
+      summary: Update an announcement (admin)
+      description: |
+        Edit any field on an existing announcement — message text, priority,
+        schedule window, or active status. All fields are optional; only
+        supplied fields are updated.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnnouncementInput'
+      responses:
+        '200':
+          description: Updated announcement
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnnouncementSingleResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    delete:
+      tags: [Announcements]
+      summary: Delete an announcement (admin)
+      description: Permanently removes the announcement. It will stop appearing on the consumer app immediately.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /announcements/{id}/status:
+    patch:
+      tags: [Announcements]
+      summary: Toggle announcement active status (admin)
+      description: |
+        Quickly activate or deactivate an announcement without editing other fields.
+        Useful for the toggle switch in the dashboard list view.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [is_active]
+              properties:
+                is_active:
+                  type: boolean
+                  example: false
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnnouncementSingleResponse'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
 
 
   /auth/send-otp:
@@ -80,7 +274,6 @@ paths:
       responses:
         '200': { $ref: '#/components/responses/Ok' }
 
-  
   /auth/resend-otp:
     post:
       tags: [Auth]
@@ -112,7 +305,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
-              
 
   /auth/refresh-token:
     post:
@@ -682,12 +874,10 @@ components:
           type: object
           nullable: true
 
-    Announcement:
+    AnnouncementInput:
       type: object
+      description: Fields accepted when creating or updating an announcement.
       properties:
-        id:
-          type: string
-          example: "1"
         message:
           type: string
           example: "Buy 1 Get 1 on Boba Tea today!"
@@ -695,10 +885,45 @@ components:
           type: string
           enum: [low, normal, high]
           example: high
+        is_active:
+          type: boolean
+          example: true
+          description: When false the announcement is saved but never served to the consumer app.
+        start_at:
+          type: string
+          format: date-time
+          description: ISO 8601. If omitted, announcement is live immediately upon creation.
+        end_at:
+          type: string
+          format: date-time
+          description: ISO 8601. If omitted, announcement runs indefinitely until deleted or deactivated.
+
+    Announcement:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "ann_01HZ9XKP"
+        message:
+          type: string
+          example: "Buy 1 Get 1 on Boba Tea today!"
+        priority:
+          type: string
+          enum: [low, normal, high]
+          example: high
+        is_active:
+          type: boolean
+          example: true
         start_at:
           type: string
           format: date-time
         end_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
           type: string
           format: date-time
 
@@ -716,7 +941,18 @@ components:
           items:
             $ref: '#/components/schemas/Announcement'
 
-      
+    AnnouncementSingleResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: OK
+        data:
+          $ref: '#/components/schemas/Announcement'
+
   responses:
     Ok:
       description: Successful response
