@@ -26,47 +26,7 @@ tags:
   - name: Loyalty
   - name: Offers
   - name: Catalog
-  - name: Announcements
 paths:
-
-  /announcements:
-    get:
-      tags: [Notifications]
-      summary: Get announcement bar messages
-      description: |
-        Returns active announcements configured by the marketing team.
-        These messages appear in the scrolling news bar on the login screen
-        before the user verifies OTP.
-      responses:
-        '200':
-          description: List of active announcements
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                        message:
-                          type: string
-                          example: "Free fries with every burger today!"
-                        priority:
-                          type: string
-                          enum: [low, normal, high]
-                        start_at:
-                          type: string
-                          format: date-time
-                        end_at:
-                          type: string
-                          format: date-time
   /auth/send-otp:
     post:
       tags: [Auth]
@@ -609,39 +569,6 @@ components:
       scheme: bearer
       bearerFormat: JWT
   parameters:
-  Announcement:
-  type: object
-  properties:
-    id:
-      type: string
-      example: "1"
-    message:
-      type: string
-      example: "Free fries with every burger today!"
-    priority:
-      type: string
-      enum: [low, normal, high]
-      example: "high"
-    start_at:
-      type: string
-      format: date-time
-    end_at:
-      type: string
-      format: date-time
-
-AnnouncementResponse:
-  type: object
-  properties:
-    success:
-      type: boolean
-      example: true
-    message:
-      type: string
-      example: OK
-    data:
-      type: array
-      items:
-        $ref: '#/components/schemas/Announcement'
     Id:
       in: path
       name: id
