@@ -12,6 +12,7 @@ servers:
     description: Local dev
 tags:
   - name: Auth
+  - name: Splash
   - name: User
   - name: Location
   - name: Stores
@@ -195,6 +196,128 @@ paths:
                 $ref: '#/components/schemas/ApiResponse'
         '404':
           description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+
+  /splash/config:
+    get:
+      tags: [Splash]
+      summary: Get splash screen configuration
+      description: |
+        Returns the current splash screen configuration used on app launch.
+        Supports up to two hero images plus an optional logo and display
+        duration in seconds. This endpoint is public so the app can fetch
+        splash assets before the user is authenticated.
+      security: []
+      responses:
+        '200':
+          description: Current splash configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SplashConfigResponse'
+    put:
+      tags: [Splash]
+      summary: Update splash screen images (admin)
+      description: |
+        Admin/dashboard can use this to change the splash images without
+        shipping a new app build. At most two images are supported. Any
+        field omitted will keep its existing value (except image_url_1,
+        which is required).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [image_url_1]
+              properties:
+                image_url_1:
+                  type: string
+                  format: uri
+                  description: Primary splash image URL (required).
+                  example: https://cdn.app.com/splash/hero-1.png
+                image_url_2:
+                  type: string
+                  format: uri
+                  nullable: true
+                  description: Optional second splash image URL.
+                  example: https://cdn.app.com/splash/hero-2.png
+                logo_url:
+                  type: string
+                  format: uri
+                  nullable: true
+                  description: Optional logo image to overlay on splash.
+                display_duration_seconds:
+                  type: integer
+                  minimum: 1
+                  maximum: 15
+                  description: How long to show the splash screen before navigating (seconds).
+                  example: 3
+      responses:
+        '200':
+          description: Updated splash configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SplashConfigResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    post:
+      tags: [Splash]
+      summary: Set splash screen images (admin)
+      description: |
+        Alias for the PUT operation on /splash/config. Accepts the same body
+        and returns the same response shape, for clients that prefer POST.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [image_url_1]
+              properties:
+                image_url_1:
+                  type: string
+                  format: uri
+                image_url_2:
+                  type: string
+                  format: uri
+                  nullable: true
+                logo_url:
+                  type: string
+                  format: uri
+                  nullable: true
+                display_duration_seconds:
+                  type: integer
+      responses:
+        '200':
+          description: Updated splash configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SplashConfigResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: Insufficient permissions
           content:
             application/json:
               schema:
@@ -912,6 +1035,54 @@ components:
           example: OK
         data:
           $ref: '#/components/schemas/Announcement'
+
+    SplashConfigImage:
+      type: object
+      properties:
+        slot:
+          type: integer
+          enum: [1, 2]
+          description: Logical position for the splash image.
+          example: 1
+        url:
+          type: string
+          format: uri
+          description: Public URL for the image asset.
+          example: https://cdn.app.com/splash/hero-1.png
+
+    SplashConfig:
+      type: object
+      properties:
+        images:
+          type: array
+          description: Up to two splash images in display order.
+          items:
+            $ref: '#/components/schemas/SplashConfigImage'
+        logo_url:
+          type: string
+          format: uri
+          nullable: true
+          description: Optional logo to show with splash images.
+        display_duration_seconds:
+          type: integer
+          description: How long the splash should be visible in seconds.
+          example: 3
+        updated_at:
+          type: string
+          format: date-time
+          description: When the splash config was last updated.
+
+    SplashConfigResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: OK
+        data:
+          $ref: '#/components/schemas/SplashConfig'
 
   responses:
     Ok:
