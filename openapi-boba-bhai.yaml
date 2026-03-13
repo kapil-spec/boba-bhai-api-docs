@@ -30,6 +30,24 @@ tags:
   - name: Announcements
 paths:
 
+  /health:
+    get:
+      tags: [Auth]
+      summary: Health check
+      description: Simple health probe for the API service.
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+
   /announcements:
     get:
       tags: [Announcements]
@@ -389,6 +407,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
 
+  /auth/session:
+    get:
+      tags: [Auth]
+      summary: Validate current session
+      description: |
+        Validates the bearer token and returns basic session/user info.
+        Used on app launch to decide whether to skip login and go directly
+        to the Home screen for returning users.
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
   /auth/refresh-token:
     post:
       tags: [Auth]
@@ -425,6 +455,16 @@ paths:
         - $ref: '#/components/parameters/StoreId'
       responses:
         '200': { $ref: '#/components/responses/Ok' }
+
+  /stores:
+    get:
+      tags: [Stores]
+      summary: List all stores
+      description: |
+        Returns a list of all stores for manual selection when the user
+        denies location permission.
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
   /user/location:
     post:
       tags: [Location]
@@ -439,6 +479,26 @@ paths:
                 lat: { type: number, format: double }
                 lng: { type: number, format: double }
                 address: { type: string }
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+
+  /user/store-selection:
+    post:
+      tags: [Stores]
+      summary: Save selected store
+      description: |
+        Saves the user’s selected store (either auto-selected from nearest
+        or manually chosen) so that the header, menu, and orders can use it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                storeId:
+                  type: string
+                  description: Selected store id.
       responses:
         '200': { $ref: '#/components/responses/Ok' }
   /serviceability:
@@ -752,6 +812,59 @@ paths:
     get:
       tags: [Loyalty]
       summary: Get rewards catalog
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+
+  /referrals/validate:
+    post:
+      tags: [Loyalty]
+      summary: Validate referral code
+      description: |
+        Validates a referral code entered during profile setup. Returns
+        whether the code is valid and basic referrer information so the
+        app can show a friendly message.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+                  description: Referral code entered by the user.
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+
+  /referrals/apply:
+    post:
+      tags: [Loyalty]
+      summary: Apply referral code to user
+      description: |
+        Applies a previously validated referral code to the current user
+        so that future loyalty/coin rewards can be attributed correctly.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+
+  /loyalty/profile-complete:
+    post:
+      tags: [Loyalty]
+      summary: Grant profile completion reward
+      description: |
+        Called after a new user completes their profile and sees the
+        welcome popup. Credits the profile-completion reward (e.g. 50
+        BB Coins) and returns the updated balance.
       responses:
         '200': { $ref: '#/components/responses/Ok' }
 
