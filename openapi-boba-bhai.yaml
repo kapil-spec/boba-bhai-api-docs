@@ -219,6 +219,72 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
 
+  /announcements/visibility:
+    patch:
+      tags: [Announcements]
+      summary: Bulk show/hide announcements (admin)
+      description: |
+        Allows marketing/admin to change the visibility of multiple
+        announcements at once. Setting `is_active` to false hides the
+        selected announcements; setting it to true shows them again.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ids, is_active]
+              properties:
+                ids:
+                  type: array
+                  description: List of announcement ids to update.
+                  items:
+                    type: string
+                    format: uuid
+                is_active:
+                  type: boolean
+                  description: |
+                    true to show the selected announcements, false to hide them.
+      responses:
+        '200':
+          description: Visibility updated for one or more announcements
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: OK
+                  data:
+                    type: object
+                    properties:
+                      updated_count:
+                        type: integer
+                        example: 2
+                      ids:
+                        type: array
+                        items:
+                          type: string
+                          format: uuid
+                      is_active:
+                        type: boolean
+        '400':
+          description: Validation error (missing ids or is_active)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
 
   /splash/config:
     get:
